@@ -8,21 +8,24 @@ services:
   worker:
     build: 
       context: './worker' 
-      dockerfile: Dockerfile
-      image: abhimanyu08/worker
+      dockerfile: Dockerfile.dev
     depends_on:
       - redis 
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    volumes:
+      - /usr/worker/node_modules
+      - ./worker:/usr/worker
   api:
     build: 
       context: './server' 
-      dockerfile: Dockerfile
-      image: abhimanyu08/api
+      dockerfile: Dockerfile.dev
     depends_on:
       - redis 
       - postgres
+    ports:
+      - "4000:5000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -31,21 +34,29 @@ services:
       - PGDATABASE=postgres
       - PGPASSWORD=postgres_password
       - PGPORT=5432
+    volumes:
+      - /usr/server/node_modules
+      - ./server:/usr/server
+
   client:
     environment:
       - WDS_SOCKET_PORT=0
     build: 
       context: ./client 
-      dockerfile: Dockerfile
-      image: abhimanyu08/client
+      dockerfile: Dockerfile.dev 
+    volumes:
+      - /home/node/client/node_modules
+      - ./client:/home/node/client
     depends_on:
       - api 
+    
   nginx: 
     restart: always
     build:
       context: ./nginx 
-      dockerfile: Dockerfile
-      image: abhimanyu08/nginx
+      dockerfile: Dockerfile.dev 
+    ports:
+      - "3050:80"
     depends_on:
       - client 
       - api
